@@ -1,0 +1,573 @@
+{
+  "info": {
+    "name": "Upivot API Collection",
+    "description": "Complete API collection for testing Upivot endpoints with authentication, drills, and attempts",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "noauth"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Set base URL",
+          "pm.globals.set('baseUrl', 'http://localhost:5001');"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5001",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health & Monitoring",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "health"]
+            },
+            "description": "Check API health status and service connectivity"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains ok field', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('ok');",
+                  "    pm.expect(jsonData.ok).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test('Response contains timestamp', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('timestamp');",
+                  "});",
+                  "",
+                  "pm.test('Response contains services status', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('services');",
+                  "    pm.expect(jsonData.services).to.have.property('database');",
+                  "    pm.expect(jsonData.services).to.have.property('cache');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Google OAuth URL",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/google",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "google"]
+            },
+            "description": "Initiate Google OAuth flow (will redirect to Google)"
+          },
+          "response": []
+        },
+        {
+          "name": "LinkedIn OAuth URL",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/linkedin",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "linkedin"]
+            },
+            "description": "Initiate LinkedIn OAuth flow (will redirect to LinkedIn)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}",
+                "description": "Session cookie (set manually after OAuth)"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "me"]
+            },
+            "description": "Get currently authenticated user information"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200 or 401', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 401]);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test('User object contains required fields', function () {",
+                  "        const jsonData = pm.response.json();",
+                  "        pm.expect(jsonData).to.have.property('_id');",
+                  "        pm.expect(jsonData).to.have.property('email');",
+                  "        pm.expect(jsonData).to.have.property('name');",
+                  "    });",
+                  "    ",
+                  "    // Store user ID for later use",
+                  "    const userData = pm.response.json();",
+                  "    pm.globals.set('userId', userData._id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}",
+                "description": "Session cookie"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "logout"]
+            },
+            "description": "Logout current user"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Logout message returned', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('message');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Drills",
+      "item": [
+        {
+          "name": "Get All Drills",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/drills",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "drills"]
+            },
+            "description": "Get all available drills"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is an array', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('Drills contain required fields', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (jsonData.length > 0) {",
+                  "        const firstDrill = jsonData[0];",
+                  "        pm.expect(firstDrill).to.have.property('_id');",
+                  "        pm.expect(firstDrill).to.have.property('title');",
+                  "        pm.expect(firstDrill).to.have.property('difficulty');",
+                  "        pm.expect(firstDrill).to.have.property('tags');",
+                  "        ",
+                  "        // Store first drill ID for detailed request",
+                  "        pm.globals.set('drillId', firstDrill._id);",
+                  "    }",
+                  "});",
+                  "",
+                  "pm.test('Response time is acceptable', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(1000);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Single Drill",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/drills/{{drillId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "drills", "{{drillId}}"]
+            },
+            "description": "Get detailed information about a specific drill"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Ensure we have a drill ID",
+                  "if (!pm.globals.get('drillId')) {",
+                  "    // Use a default drill ID if none is set",
+                  "    pm.globals.set('drillId', '507f1f77bcf86cd799439011');",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200 or 404', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test('Drill contains questions', function () {",
+                  "        const jsonData = pm.response.json();",
+                  "        pm.expect(jsonData).to.have.property('questions');",
+                  "        pm.expect(jsonData.questions).to.be.an('array');",
+                  "    });",
+                  "    ",
+                  "    pm.test('Questions have required structure', function () {",
+                  "        const jsonData = pm.response.json();",
+                  "        if (jsonData.questions.length > 0) {",
+                  "            const firstQuestion = jsonData.questions[0];",
+                  "            pm.expect(firstQuestion).to.have.property('question');",
+                  "            pm.expect(firstQuestion).to.have.property('keywords');",
+                  "            pm.expect(firstQuestion.keywords).to.be.an('array');",
+                  "        }",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Attempts",
+      "item": [
+        {
+          "name": "Submit Attempt",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}",
+                "description": "Session cookie (required for authentication)"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"drillId\": \"{{drillId}}\",\n  \"answers\": [\n    \"A closure is a function that has access to variables in its outer scope even after the outer function has returned. For example, function outer() { let x = 10; return function inner() { return x; }; }\",\n    \"var is function-scoped and hoisted, let and const are block-scoped. const cannot be reassigned while let can be. Both let and const have temporal dead zones.\",\n    \"The event loop handles asynchronous operations in JavaScript. It continuously checks the call stack and callback queue, moving callbacks to the stack when it's empty.\",\n    \"Prototype inheritance allows objects to inherit properties and methods from other objects through the prototype chain. Unlike classical inheritance with classes, it's based on object relationships.\",\n    \"async/await is syntactic sugar over Promises, making asynchronous code look synchronous. Use async/await for cleaner code, Promises for complex chaining or when you need more control.\"\n  ],\n  \"timeSpentMinutes\": 25\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/attempts",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "attempts"]
+            },
+            "description": "Submit answers for a drill attempt"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200, 401, or 404', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 401, 404]);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test('Attempt response contains score', function () {",
+                  "        const jsonData = pm.response.json();",
+                  "        pm.expect(jsonData).to.have.property('score');",
+                  "        pm.expect(jsonData).to.have.property('maxScore');",
+                  "        pm.expect(jsonData).to.have.property('percentage');",
+                  "    });",
+                  "    ",
+                  "    pm.test('Score is valid', function () {",
+                  "        const jsonData = pm.response.json();",
+                  "        pm.expect(jsonData.score).to.be.at.least(0);",
+                  "        pm.expect(jsonData.percentage).to.be.within(0, 100);",
+                  "    });",
+                  "    ",
+                  "    // Store attempt ID",
+                  "    const attemptData = pm.response.json();",
+                  "    pm.globals.set('attemptId', attemptData._id);",
+                  "}",
+                  "",
+                  "if (pm.response.code === 401) {",
+                  "    pm.test('Unauthorized response has error structure', function () {",
+                  "        const jsonData = pm.response.json();",
+                  "        pm.expect(jsonData).to.have.property('error');",
+                  "        pm.expect(jsonData.error).to.have.property('code');",
+                  "        pm.expect(jsonData.error.code).to.equal('UNAUTHORIZED');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get User Attempts",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}",
+                "description": "Session cookie (required for authentication)"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/attempts?limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "attempts"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Maximum number of attempts to return"
+                }
+              ]
+            },
+            "description": "Get user's recent attempts"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200 or 401', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 401]);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test('Response is an array', function () {",
+                  "        const jsonData = pm.response.json();",
+                  "        pm.expect(jsonData).to.be.an('array');",
+                  "    });",
+                  "    ",
+                  "    pm.test('Attempts contain required fields', function () {",
+                  "        const jsonData = pm.response.json();",
+                  "        if (jsonData.length > 0) {",
+                  "            const firstAttempt = jsonData[0];",
+                  "            pm.expect(firstAttempt).to.have.property('_id');",
+                  "            pm.expect(firstAttempt).to.have.property('score');",
+                  "            pm.expect(firstAttempt).to.have.property('drillId');",
+                  "            pm.expect(firstAttempt).to.have.property('completedAt');",
+                  "        }",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Analytics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}",
+                "description": "Session cookie (required for authentication)"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/analytics",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "analytics"]
+            },
+            "description": "Get user performance analytics"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200 or 401', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 401]);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test('Analytics contains stats', function () {",
+                  "        const jsonData = pm.response.json();",
+                  "        pm.expect(jsonData).to.have.property('stats');",
+                  "        pm.expect(jsonData).to.have.property('recentActivity');",
+                  "    });",
+                  "    ",
+                  "    pm.test('Stats contain required metrics', function () {",
+                  "        const jsonData = pm.response.json();",
+                  "        const stats = jsonData.stats;",
+                  "        pm.expect(stats).to.have.property('totalAttempts');",
+                  "        pm.expect(stats).to.have.property('averageScore');",
+                  "        pm.expect(stats).to.have.property('bestScore');",
+                  "        pm.expect(stats).to.have.property('totalTimeSpent');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Error Cases",
+      "item": [
+        {
+          "name": "Invalid Drill ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/drills/invalid-id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "drills", "invalid-id"]
+            },
+            "description": "Test error handling for invalid drill ID"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 404 or 500', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([404, 500]);",
+                  "});",
+                  "",
+                  "pm.test('Error response has proper structure', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('error');",
+                  "    pm.expect(jsonData.error).to.have.property('code');",
+                  "    pm.expect(jsonData.error).to.have.property('message');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Rate Limit Test",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "health"]
+            },
+            "description": "Test rate limiting (run this multiple times rapidly)"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200 or 429', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 429]);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 429) {",
+                  "    pm.test('Rate limit response has proper headers', function () {",
+                  "        pm.expect(pm.response.headers.get('RateLimit-Limit')).to.exist;",
+                  "        pm.expect(pm.response.headers.get('RateLimit-Remaining')).to.exist;",
+                  "    });",
+                  "    ",
+                  "    pm.test('Rate limit error has proper structure', function () {",
+                  "        const jsonData = pm.response.json();",
+                  "        pm.expect(jsonData).to.have.property('error');",
+                  "        pm.expect(jsonData.error.code).to.equal('RATE_LIMIT_EXCEEDED');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

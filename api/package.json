@@ -1,0 +1,60 @@
+{
+  "name": "upivot-api",
+  "version": "1.0.0",
+  "description": "Upivot API server with enhanced features",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "lint": "eslint . --ext .js",
+    "lint:fix": "eslint . --ext .js --fix"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "compression": "^1.7.4",
+    "connect-redis": "^7.1.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-rate-limit": "^7.1.5",
+    "express-session": "^1.17.3",
+    "express-slow-down": "^2.0.1",
+    "helmet": "^7.1.0",
+    "joi": "^17.11.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.0.3",
+    "morgan": "^1.10.0",
+    "passport": "^0.7.0",
+    "passport-google-oauth20": "^2.0.0",
+    "passport-linkedin-oauth2": "^2.0.0",
+    "passport-linkedin-oauth2": "^2.0.0",
+    "rate-limit-redis": "^4.2.0",
+    "redis": "^4.6.12"
+  },
+  "devDependencies": {
+    "eslint": "^8.55.0",
+    "eslint-config-standard": "^17.1.0",
+    "eslint-plugin-import": "^2.29.0",
+    "eslint-plugin-n": "^16.4.0",
+    "eslint-plugin-promise": "^6.1.1",
+    "jest": "^29.7.0",
+    "nodemon": "^3.0.2",
+    "supertest": "^6.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "api",
+    "express",
+    "mongodb",
+    "oauth",
+    "redis",
+    "drill",
+    "assessment"
+  ],
+  "author": "Upivot Team",
+  "license": "MIT"
+}

@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  web:
+    build: ./web
+    ports:
+      - "3000:3000"
+    environment:
+      - VITE_API_URL=${VITE_API_URL:-http://localhost:5001}
+    depends_on:
+      - api
+
+  api:
+    build: ./api
+    ports:
+      - "5001:5001"
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - PORT=${PORT:-5001}
+      - MONGODB_URI=${MONGODB_URI:-mongodb://mongo:27017/upivot}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - LINKEDIN_CLIENT_ID=${LINKEDIN_CLIENT_ID}
+      - LINKEDIN_CLIENT_SECRET=${LINKEDIN_CLIENT_SECRET}
+      - JWT_SECRET=${JWT_SECRET:-a4d491fbdf01950c2f32e1b069a3627aa58dff7540bfd3503c5a14ed379e161c}
+      - SESSION_SECRET=${SESSION_SECRET:-f182e9d74716e427b8467403a1acd9551d1995502da01964637d9bcd413e79bf}
+      - SESSION_COOKIE_NAME=${SESSION_COOKIE_NAME:-upivot.sid}
+      - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost:3000}
+      - RATE_LIMIT_WINDOW_MS=${RATE_LIMIT_WINDOW_MS:-900000}
+      - RATE_LIMIT_MAX_REQUESTS=${RATE_LIMIT_MAX_REQUESTS:-100}
+      - CACHE_TTL_SECONDS=${CACHE_TTL_SECONDS:-60}
+    depends_on:
+      - mongo
+      - redis
+    volumes:
+      - ./api:/app
+      - /app/node_modules
+
+  mongo:
+    image: mongo:7
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+
+volumes:
+  mongo_data:
+  redis_data:
