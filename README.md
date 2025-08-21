@@ -51,6 +51,16 @@ openssl rand -hex 32
 # Generate session secret  
 openssl rand -hex 32
 
+# Add these to your .env file:
+JWT_SECRET=<generated-jwt-secret>
+SESSION_SECRET=<generated-session-secret>
+```
+
+⚠️ **Security Warning**: Never commit your `.env` file or expose real secrets in your repository!
+
+# Generate session secret  
+openssl rand -hex 32
+
 # Add to .env:
 JWT_SECRET=your_generated_jwt_secret
 SESSION_SECRET=your_generated_session_secret
