@@ -404,10 +404,17 @@ app.get('/api/drills', async (req, res) => {
     let drills = await getFromCache(cacheKey);
     
     if (!drills) {
-      drills = await Drill.find({ isActive: true })
-        .select('title description difficulty tags category estimatedTimeMinutes createdAt')
+      const rawDrills = await Drill.find({ isActive: true })
+        .select('title description difficulty tags category estimatedTimeMinutes questions createdAt')
         .sort({ createdAt: -1 })
         .lean(); // Use lean() for better performance
+      
+      // Transform to include question count but not full questions
+      drills = rawDrills.map(drill => ({
+        ...drill,
+        questionCount: drill.questions?.length || 0,
+        questions: undefined // Remove the full questions array
+      }));
       
       await setCache(cacheKey, drills, parseInt(process.env.CACHE_TTL_SECONDS) || 60);
     }
@@ -524,6 +531,7 @@ app.get('/api/attempts', requireAuth, async (req, res) => {
 // Analytics endpoint
 app.get('/api/analytics', requireAuth, async (req, res) => {
   try {
+    console.log('Analytics endpoint called for user:', req.user._id);
     const userId = req.user._id;
     
     const stats = await Attempt.aggregate([
@@ -539,16 +547,23 @@ app.get('/api/analytics', requireAuth, async (req, res) => {
       }
     ]);
     
+    console.log('Analytics stats:', stats);
+    
     const recentActivity = await Attempt.find({ userId })
       .populate('drillId', 'title difficulty')
       .sort({ completedAt: -1 })
       .limit(10)
       .lean();
     
-    res.json({
+    console.log('Recent activity count:', recentActivity.length);
+    
+    const response = {
       stats: stats[0] || { totalAttempts: 0, averageScore: 0, bestScore: 0, totalTimeSpent: 0 },
       recentActivity
-    });
+    };
+    
+    console.log('Sending analytics response:', response);
+    res.json(response);
   } catch (error) {
     res.status(500).json({ error: { code: 'SERVER_ERROR', message: 'Failed to fetch analytics' } });
   }

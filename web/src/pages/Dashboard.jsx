@@ -1,30 +1,43 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { drillsAPI } from '../api';
+import { drillsAPI, analyticsAPI } from '../api';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorDisplay from '../components/ErrorDisplay';
 
 const Dashboard = () => {
   const { user } = useAuth();
   const [drills, setDrills] = useState([]);
+  const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [filter, setFilter] = useState('all');
 
   useEffect(() => {
-    fetchDrills();
+    const loadData = async () => {
+      setLoading(true);
+      await Promise.all([fetchDrills(), fetchAnalytics()]);
+      setLoading(false);
+    };
+    loadData();
   }, []);
 
   const fetchDrills = async () => {
     try {
-      setLoading(true);
       const response = await drillsAPI.getAll();
       setDrills(response.data);
     } catch (err) {
-      setError(err.response?.data?.error?.message || err.message || 'An error occurred');
-    } finally {
-      setLoading(false);
+      setError(err.response?.data?.error?.message || err.message || 'Failed to load drills');
+    }
+  };
+
+  const fetchAnalytics = async () => {
+    try {
+      const response = await analyticsAPI.getStats();
+      setAnalytics(response.data);
+    } catch (err) {
+      console.error('Failed to load analytics:', err);
+      // Don't set error state for analytics failure, just log it
     }
   };
 
@@ -89,7 +102,9 @@ const Dashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-400 text-sm">Completed</p>
-                <p className="text-3xl font-bold text-white">0</p>
+                <p className="text-3xl font-bold text-white">
+                  {analytics?.stats?.totalAttempts || 0}
+                </p>
               </div>
               <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center">
                 <span className="text-2xl">✅</span>
@@ -101,7 +116,12 @@ const Dashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-400 text-sm">Average Score</p>
-                <p className="text-3xl font-bold text-white">--</p>
+                <p className="text-3xl font-bold text-white">
+                  {analytics?.stats?.averageScore 
+                    ? Math.round(analytics.stats.averageScore) + '%'
+                    : '--'
+                  }
+                </p>
               </div>
               <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center">
                 <span className="text-2xl">🏆</span>
@@ -185,7 +205,7 @@ const Dashboard = () => {
                         )}
                       </div>
                       <div className="text-gray-400 text-sm">
-                        {drill.questions?.length || 0} questions
+                        {drill.questionCount || 5} questions
                       </div>
                     </div>
                     

@@ -22,4 +22,8 @@ export const attemptsAPI = {
   getHistory: (limit = 5) => api.get(`/api/attempts?limit=${limit}`)
 };
 
+export const analyticsAPI = {
+  getStats: () => api.get('/api/analytics')
+};
+
 export default api;
